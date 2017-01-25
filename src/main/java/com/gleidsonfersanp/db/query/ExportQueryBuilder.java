@@ -1,5 +1,7 @@
 package com.gleidsonfersanp.db.query;
 
+import java.util.List;
+
 import com.gleidsonfersanp.extra.Util;
 import com.gleidsonfersanp.extra.exception.GeneralException;
 
@@ -18,6 +20,15 @@ public class ExportQueryBuilder {
 
 	public ExportQueryBuilder columnQueries(ExportColumnQuery columnQuery){
 		this.instance.getColumnQuerys().add(columnQuery);
+		return this;
+	}
+
+	public ExportQueryBuilder columnsQueries(List<ExportColumnQuery> columnsQueries){
+
+		for (ExportColumnQuery exportColumnQuery : columnsQueries) {
+			this.instance.getColumnQuerys().add(exportColumnQuery);
+		}
+
 		return this;
 	}
 

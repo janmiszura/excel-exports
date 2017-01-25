@@ -1,7 +1,6 @@
 package com.gleidsonfersanp.exports;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -10,12 +9,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.gleidsonfersanp.db.dao.EXEXDaoImpl;
-import com.gleidsonfersanp.db.dao.IEXEXDao;
-import com.gleidsonfersanp.db.query.ExportColumnQuery;
-import com.gleidsonfersanp.db.query.ExportQuery;
 import com.gleidsonfersanp.db.query.ExportQueryBuilder;
-import com.gleidsonfersanp.db.query.ExportResultQuery;
 import com.gleidsonfersanp.extra.DBUtilTestImpl;
 import com.gleidsonfersanp.extra.IDBUtilTest;
 import com.gleidsonfersanp.extra.exception.GeneralException;
@@ -24,8 +18,6 @@ public class ExcelExportsTest {
 
 	private IDBUtilTest iUtilTest;
 	private IExcelExports iExcelExports;
-
-	private IEXEXDao dao;
 
 	@Before
 	public void init(){
@@ -40,8 +32,6 @@ public class ExcelExportsTest {
 
 			iExcelExports = new ExcelExportsImpl(iUtilTest.getDataSource());
 
-			dao = new EXEXDaoImpl(iUtilTest.getDataSource());
-
 		} catch (GeneralException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -50,70 +40,66 @@ public class ExcelExportsTest {
 	}
 
 	@Test
-	public void exportExcelPathTest(){
-
-		String pathFile = null;
-
-		pathFile = getPathFile("/home/afrodite/dev/teste","exportacao-test");
-
-		Assert.assertNotNull(pathFile);
-
-		Assert.assertEquals(pathFile, "/home/afrodite/dev/teste/exportacao-test.xlsx");
-
-	}
-
-	@Test
-	public void exportExcelFileTest(){
+	public void exportExcelFileForExportQueryTest(){
 
 		String path = "/home/afrodite/dev/teste";
-		String fileName = "exportacao-test.xlsx";
+		String fileName = "exportacao-test-1";
 
 		File file = null;
 
 		try {
-			file = getFile(
-					new ExportQueryBuilder()
+			file = iExcelExports.exportsForLocalPath(new ExportQueryBuilder()
 					.table("cliente")
-					.columnQueries(new ExportColumnQuery("nome","NAME"))
+					/*.columnQueries(new ExportColumnQuery("nome","NAME"))
 					.columnQueries(new ExportColumnQuery("idade","AGE"))
-					.columnQueries(new ExportColumnQuery("email","EMAIL"))
-					.build(),getPathFile(path, fileName));
-		} catch (SQLException | GeneralException | IOException e) {
+					.columnQueries(new ExportColumnQuery("email","EMAIL"))*/
+					.build(), path, fileName);
+		} catch (IOException | SQLException | GeneralException e) {
 			e.printStackTrace();
 		}
 
-		//Assert.assertNotNull(file);
+		Assert.assertNotNull(file);
 
 
 	}
 
-	private File getFile(ExportQuery exportQuery, String pathFile) throws SQLException, GeneralException, IOException {
+	@Test
+	public void exportExcelFileForSqlTest(){
+
 		String path = "/home/afrodite/dev/teste";
-		String fileName = "exportacao-test.xlsx";
+		String fileName = "exportacao-test-2";
 
-		File file = iExcelExports.exportsForLocalPath(exportQuery, path, fileName);
+		File file = null;
 
-		return file;
+		try {
+			file = iExcelExports.exportsForLocalPath("SELECT * FROM CLIENTE", path, fileName);
+		} catch (IOException | SQLException | GeneralException e) {
+			e.printStackTrace();
+		}
+
+		Assert.assertNotNull(file);
+
+
 	}
 
-	private ExportResultQuery getExportResultQuery(ExportQuery exportQuery) throws SQLException, GeneralException{
+	@Test
+	public void exportExcelFileForSqlColumnsTest(){
 
-		ExportResultQuery exportResultQuery = dao.executeQuery(new ExportQueryBuilder()
-				.table("cliente")
-				.columnQueries(new ExportColumnQuery("nome","NAME"))
-				.columnQueries(new ExportColumnQuery("idade","AGE"))
-				.columnQueries(new ExportColumnQuery("email","EMAIL"))
-				.columnQueries(new ExportColumnQuery("telefone","FONE"))
-				.build());
+		String path = "/home/afrodite/dev/teste";
+		String fileName = "exportacao-test-3";
 
-		return exportResultQuery;
+		File file = null;
+
+		try {
+			file = iExcelExports.exportsForLocalPath("SELECT nome AS NOME FROM CLIENTE", path, fileName);
+		} catch (IOException | SQLException | GeneralException e) {
+			e.printStackTrace();
+		}
+
+		Assert.assertNotNull(file);
+
+
 	}
-
-	private String getPathFile(String path, String fileName) {
-		String pathFile = path+"/"+fileName+".xlsx";
-		return pathFile;
-	}
-
 
 	@After
 	public void postTest(){

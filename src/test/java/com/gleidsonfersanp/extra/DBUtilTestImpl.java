@@ -30,10 +30,16 @@ public class DBUtilTestImpl implements IDBUtilTest{
 
 	private static final String SQL_INSERT =
 			"INSERT INTO cliente VALUES ('UA502', 'Michelangelo', 85, '1971-07-13', '(62) 9999-9999', 'michelangelo@email.com');"
-					+"INSERT INTO cliente VALUES ('UA503', 'Paulo Coelho', 69, '1971-07-13', '(62) 9999-9999', 'paulo@email.com');"
-					+"INSERT INTO cliente VALUES ('UA504', 'José de Alencar', 76, '1971-07-14', '(62) 9999-9999', 'jose@email.com');"
-					+"INSERT INTO cliente VALUES ('UA505', 'Vinicios de Moraes', 45, '1971-07-15', '(62) 9999-9999', 'vinicius@email.com');"
-					+"INSERT INTO cliente VALUES ('UA506', 'Cumpade Washington', 69, '1971-07-16', '(62) 9999-9999', 'cumpade@email.com');";
+			+"INSERT INTO cliente VALUES ('UA503', 'Paulo Coelho', 69, '1971-07-13', '(62) 9999-9999', 'paulo@email.com');"
+			+"INSERT INTO cliente VALUES ('UA504', 'José de Alencar', 76, '1971-07-14', '(62) 9999-9999', 'jose@email.com');"
+			+"INSERT INTO cliente VALUES ('UA505', 'Vinicios de Moraes', 45, '1971-07-15', '(62) 9999-9999', 'vinicius@email.com');"
+			+"INSERT INTO cliente VALUES ('UA506', 'Cumpade Washington', 69, '1971-07-16', '(62) 9999-9999', 'cumpade@email.com');"
+			+"INSERT INTO cliente VALUES ('UA507', 'Cumpade Washington', 69, '1971-07-16', '(62) 9999-9999', 'cumpade1@email.com');"
+			+"INSERT INTO cliente VALUES ('UA508', 'Cumpade Washington2', 69, '1971-07-16', '(62) 9999-9999', 'cumpade2@email.com');"
+			+"INSERT INTO cliente VALUES ('UA509', 'Cumpade Washington3', 69, '1971-07-16', '(62) 9999-9999', 'cumpade3@email.com');"
+			+"INSERT INTO cliente VALUES ('UA510', 'Cumpade Washington4', 69, '1971-07-16', '(62) 9999-9999', 'cumpade4@email.com');"
+			+"INSERT INTO cliente VALUES ('UA511', 'Cumpade Washington5', 69, '1971-07-16', '(62) 9999-9999', 'cumpade5@email.com');"
+			+"INSERT INTO cliente VALUES ('UA512', 'Cumpade Washington6', 69, '1971-07-16', '(62) 9999-9999', 'cumpade6@email.com');";
 
 	private static final String SQL_DROP_TABLE = "DROP TABLE cliente";
 

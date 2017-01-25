@@ -2,6 +2,7 @@ package com.gleidsonfersanp.db.dao;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,20 @@ public class EXEXDaoImpl implements IEXEXDao{
 		return createExportsResultQuery(resultSet, exportQuery);
 	}
 
+	@Override
+	public ExportResultQuery executeQuery(String sql) throws SQLException {
+
+		ResultSet resultSet = null;
+
+		try {
+			resultSet = executeSql(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return createExportsResultQuery(resultSet, null);
+	}
+
 	public ResultSet executeSql(String sql) throws SQLException{
 
 		Connection connection = connectionService.getConnection();
@@ -63,19 +78,60 @@ public class EXEXDaoImpl implements IEXEXDao{
 
 		List<ExportColumnResult>columnResults = new ArrayList<>();
 
-		for (ExportColumnQuery query : exportQuery.getColumnQuerys()) {
-			columnResults.add(new ExportColumnResult(query.getColumnAlias(),new ArrayList<Object>()));
+		if(exportQuery != null){
+
+			for (ExportColumnQuery query : exportQuery.getColumnQuerys()) {
+				columnResults.add(new ExportColumnResult(query.getColumnAlias(),new ArrayList<Object>()));
+			}
+
+			if(exportQuery.getColumnQuerys().isEmpty()){
+
+				columnResults = getListOfExportColumns(resultSet);
+			}
+
+			return new ExportResultQuery(columnResults);
 		}
 
+		columnResults = getListOfExportColumns(resultSet);
+
+		return new ExportResultQuery(columnResults);
+	}
+
+	private List<ExportColumnResult> getListOfExportColumns(ResultSet resultSet) throws SQLException {
+
+		List<ExportColumnResult>columnResults = new ArrayList<>();
+
+		boolean flag = false;
 		while (resultSet.next()) {
+
+			ResultSetMetaData rsmd = resultSet.getMetaData();
+
+			int columnCount = rsmd.getColumnCount();
+
+			if(columnCount == 1 && !flag){
+				String columnName = rsmd.getColumnName(1);
+				ExportColumnResult columnResult = new ExportColumnResult(columnName);
+				columnResults.add(columnResult);
+				flag = true;
+			}
+
+			if(!flag){
+
+				for (int i = 1; i < columnCount; i++) {
+					String columnName = rsmd.getColumnName(i);
+					ExportColumnResult columnResult = new ExportColumnResult(columnName);
+					columnResults.add(columnResult);
+
+				}
+				flag = true;
+			}
 
 			for (ExportColumnResult columnResult : columnResults) {
 				columnResult.getObjects().add(resultSet.getObject(columnResult.getName()));
 			}
-
 		}
 
-		return new ExportResultQuery(columnResults);
+		return columnResults;
 	}
 
 	public String generateASqlQuery(ExportQuery exportQuery) {

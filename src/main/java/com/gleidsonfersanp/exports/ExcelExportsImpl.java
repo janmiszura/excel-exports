@@ -23,7 +23,6 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import com.gleidsonfersanp.db.connection.EXEXDataSource;
 import com.gleidsonfersanp.db.dao.EXEXDaoImpl;
 import com.gleidsonfersanp.db.dao.IEXEXDao;
-import com.gleidsonfersanp.db.query.ExportColumnQuery;
 import com.gleidsonfersanp.db.query.ExportColumnResult;
 import com.gleidsonfersanp.db.query.ExportQuery;
 import com.gleidsonfersanp.db.query.ExportQueryBuilder;
@@ -45,11 +44,8 @@ public class ExcelExportsImpl implements IExcelExports{
 
 	public ExcelExportsImpl(EXEXDataSource dataSource) {
 		this.dataSource = dataSource;
-
 		this.wb = new SXSSFWorkbook (100);
 		wb.setCompressTempFiles(true);
-
-
 		cellStyle = wb.createCellStyle();
 		createHelper = wb.getCreationHelper();
 		cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/mm/yyyy hh:mm"));
@@ -67,7 +63,27 @@ public class ExcelExportsImpl implements IExcelExports{
 
 		File file = new File(pathExports);
 
-		return file;
+		if(file.exists())
+			return file;
+
+		return null;
+
+	}
+
+	@Override
+	public File exportsForLocalPath(String sql, String path, String fileName) throws IOException, SQLException, GeneralException {
+		String pathExports = getPathFile(path, fileName);
+
+		ExportResultQuery exportResultQuery = getExportResultQuery(sql);
+
+		generateFile(exportResultQuery, pathExports);
+
+		File file = new File(pathExports);
+
+		if(file.exists())
+			return file;
+
+		return null;
 
 	}
 
@@ -82,11 +98,17 @@ public class ExcelExportsImpl implements IExcelExports{
 
 		ExportResultQuery exportResultQuery = dao.executeQuery(new ExportQueryBuilder()
 				.table("cliente")
-				.columnQueries(new ExportColumnQuery("nome","NAME"))
-				.columnQueries(new ExportColumnQuery("idade","AGE"))
-				.columnQueries(new ExportColumnQuery("email","EMAIL"))
-				.columnQueries(new ExportColumnQuery("telefone","FONE"))
+				.columnsQueries(exportQuery.getColumnQuerys())
 				.build());
+
+		return exportResultQuery;
+	}
+
+	private ExportResultQuery getExportResultQuery(String sql) throws SQLException, GeneralException{
+
+		dao = new EXEXDaoImpl(this.dataSource);
+
+		ExportResultQuery exportResultQuery = dao.executeQuery(sql);
 
 		return exportResultQuery;
 	}
@@ -150,9 +172,11 @@ public class ExcelExportsImpl implements IExcelExports{
 
 		createHeader(exportResultQuery);
 
+		List<Map<SXSSFRow, List<Object>>> maps = new ArrayList<Map<SXSSFRow, List<Object>>>();
+
 		List<List<Object>> listOfListObjects = createListOfObjects(columns);
 
-		List<Map<SXSSFRow, List<Object>>> maps = createListMap(listOfListObjects);
+		maps = createListMap(listOfListObjects);
 
 		addContentColumns(maps);
 
@@ -169,20 +193,29 @@ public class ExcelExportsImpl implements IExcelExports{
 	}
 
 	private List<List<Object>> createListOfObjects(List<ExportColumnResult> columns) {
-		int indexObj = 0;
 
 		List<List<Object>> listOfListObjects = new ArrayList<List<Object>>();
+
+		if(columns.size() == 1){
+
+			List<Object>listObjects= new ArrayList<Object>();
+
+			listObjects.addAll(columns.get(0).getObjects());
+
+			listOfListObjects.add(listObjects);
+			return listOfListObjects;
+		}
+
 
 		for (int i = 0; i< columns.size(); i++) {
 
 			List<Object>listObjects= new ArrayList<Object>();
 
 			int indexCol = 0;
-			for (ExportColumnResult colum : columns) {
-				listObjects.add(columns.get(indexCol).getObjects().get(indexObj));
+			for (int j = 0; j< columns.size(); j++) {
+				listObjects.add(columns.get(indexCol).getObjects().get(i));
 				indexCol++;
 			}
-			indexObj++;
 
 			listOfListObjects.add(listObjects);
 
@@ -194,32 +227,43 @@ public class ExcelExportsImpl implements IExcelExports{
 		List<Map<SXSSFRow, List<Object>>> maps = new ArrayList<Map<SXSSFRow, List<Object>>>();
 
 		int indexRow = 1;
+
 		for (List<Object> list : listOfListObjects) {
 
-			Map<SXSSFRow, List<Object>> map = new HashMap<SXSSFRow, List<Object>>();
+			for (Object object : list) {
 
-			SXSSFRow row = sheet.createRow(indexRow);
+				Map<SXSSFRow, List<Object>> map = createRowMap(indexRow, list);
 
-			map.put(row, list);
-
-			maps.add(map);
+				maps.add(map);
+			}
 
 			indexRow++;
 
 
 		}
+
 		return maps;
 	}
 
+	private Map<SXSSFRow, List<Object>> createRowMap(int indexRow, List<Object> list) {
+		SXSSFRow row = sheet.createRow(indexRow);
+
+		Map<SXSSFRow, List<Object>> map = new HashMap<SXSSFRow, List<Object>>();
+
+		map.put(row, list);
+		return map;
+	}
+
 	private void addContentColumns(List<Map<SXSSFRow, List<Object>>> maps) {
+
 		for (Map<SXSSFRow, List<Object>> map : maps) {
 
 			for (Map.Entry<SXSSFRow,  List<Object>> entry : map.entrySet()) {
 
-				int index =0;
+				int columnNumber =0;
 				for(Object obj: entry.getValue()){
-					addColumn(entry.getKey(), index, obj);
-					index++;
+					addColumn(entry.getKey(), columnNumber, obj);
+					columnNumber++;
 				}
 
 			}

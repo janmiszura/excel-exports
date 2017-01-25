@@ -10,5 +10,6 @@ import com.gleidsonfersanp.extra.exception.GeneralException;
 public interface IExcelExports {
 
 	File exportsForLocalPath(ExportQuery exportQuery, String path, String fileName) throws IOException, SQLException, GeneralException;
+	File exportsForLocalPath(String sql, String path, String fileName) throws IOException, SQLException, GeneralException;
 
 }

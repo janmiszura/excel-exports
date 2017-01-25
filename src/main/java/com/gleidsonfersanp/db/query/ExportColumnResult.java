@@ -14,6 +14,10 @@ public class ExportColumnResult {
 		this.objects = objects;
 	}
 
+	public ExportColumnResult(String name) {
+		this.name = name;
+	}
+
 	public String getName() {
 		return name;
 	}

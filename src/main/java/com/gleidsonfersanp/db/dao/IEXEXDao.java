@@ -9,6 +9,7 @@ import com.gleidsonfersanp.db.query.ExportResultQuery;
 public interface IEXEXDao {
 
 	ExportResultQuery executeQuery(ExportQuery exportQuery) throws SQLException;
+	ExportResultQuery executeQuery(String sql) throws SQLException;
 	ResultSet executeSql(String sql) throws SQLException;
 	String generateASqlQuery(ExportQuery exportQuery);
 
