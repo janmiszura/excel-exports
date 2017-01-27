@@ -47,16 +47,21 @@ public class ExcelExportsTest {
 
 		File file = null;
 
-		try {
-			file = iExcelExports.exportsForLocalPath(new ExportQueryBuilder()
-					.table("cliente")
-					/*.columnQueries(new ExportColumnQuery("nome","NAME"))
-					.columnQueries(new ExportColumnQuery("idade","AGE"))
-					.columnQueries(new ExportColumnQuery("email","EMAIL"))*/
-					.build(), path, fileName);
-		} catch (IOException | SQLException | GeneralException e) {
-			e.printStackTrace();
-		}
+			try {
+				file = iExcelExports.exportsForLocalPath(new ExportQueryBuilder()
+						.table("cliente")
+						/*.columnQueries(new ExportColumnQuery("nome","NAME"))
+						.columnQueries(new ExportColumnQuery("idade","AGE"))
+						.columnQueries(new ExportColumnQuery("email","EMAIL"))*/
+						.build(), path, fileName);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (GeneralException e) {
+				e.printStackTrace();
+			}
+
 
 		Assert.assertNotNull(file);
 
@@ -71,11 +76,15 @@ public class ExcelExportsTest {
 
 		File file = null;
 
-		try {
-			file = iExcelExports.exportsForLocalPath("SELECT * FROM CLIENTE", path, fileName);
-		} catch (IOException | SQLException | GeneralException e) {
-			e.printStackTrace();
-		}
+			try {
+				file = iExcelExports.exportsForLocalPath("SELECT * FROM CLIENTE", path, fileName);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (GeneralException e) {
+				e.printStackTrace();
+			}
 
 		Assert.assertNotNull(file);
 
@@ -90,11 +99,15 @@ public class ExcelExportsTest {
 
 		File file = null;
 
-		try {
-			file = iExcelExports.exportsForLocalPath("SELECT nome AS NOME FROM CLIENTE", path, fileName);
-		} catch (IOException | SQLException | GeneralException e) {
-			e.printStackTrace();
-		}
+			try {
+				file = iExcelExports.exportsForLocalPath("SELECT nome AS NOME FROM CLIENTE", path, fileName);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (GeneralException e) {
+				e.printStackTrace();
+			}
 
 		Assert.assertNotNull(file);
 

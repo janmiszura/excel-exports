@@ -7,7 +7,7 @@ public class ExportColumnResult {
 
 	private String name;
 
-	private List<Object>objects = new ArrayList<>();
+	private List<Object>objects = new ArrayList<Object>();
 
 	public ExportColumnResult(String name, List<Object> objects) {
 		this.name = name;

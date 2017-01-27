@@ -53,7 +53,6 @@ public class ExcelExportsImpl implements IExcelExports{
 		rowHeader = sheet.createRow(0);
 	}
 
-	@Override
 	public File exportsForLocalPath(ExportQuery exportQuery, String path, String fileName) throws IOException, SQLException, GeneralException {
 		String pathExports = getPathFile(path, fileName);
 
@@ -70,7 +69,6 @@ public class ExcelExportsImpl implements IExcelExports{
 
 	}
 
-	@Override
 	public File exportsForLocalPath(String sql, String path, String fileName) throws IOException, SQLException, GeneralException {
 		String pathExports = getPathFile(path, fileName);
 
@@ -238,7 +236,6 @@ public class ExcelExportsImpl implements IExcelExports{
 			}
 
 			indexRow++;
-
 
 		}
 

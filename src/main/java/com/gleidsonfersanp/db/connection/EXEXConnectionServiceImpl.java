@@ -19,7 +19,6 @@ public class EXEXConnectionServiceImpl implements IEXEXConnectionService{
 		this.dataSource = dataSource;
 	}
 
-	@Override
 	public Connection getConnection() {
 
 		logger.info("-------- "+dataSource.getDataBase().toString()+" JDBC Connection Testing ------------");

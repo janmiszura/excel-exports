@@ -33,7 +33,6 @@ public class EXEXDaoImpl implements IEXEXDao{
 				);
 	}
 
-	@Override
 	public ExportResultQuery executeQuery(ExportQuery exportQuery) throws SQLException {
 
 		String sql = generateASqlQuery(exportQuery);
@@ -49,7 +48,6 @@ public class EXEXDaoImpl implements IEXEXDao{
 		return createExportsResultQuery(resultSet, exportQuery);
 	}
 
-	@Override
 	public ExportResultQuery executeQuery(String sql) throws SQLException {
 
 		ResultSet resultSet = null;
@@ -76,7 +74,7 @@ public class EXEXDaoImpl implements IEXEXDao{
 
 	private ExportResultQuery createExportsResultQuery(ResultSet resultSet,ExportQuery exportQuery) throws SQLException {
 
-		List<ExportColumnResult>columnResults = new ArrayList<>();
+		List<ExportColumnResult>columnResults = new ArrayList<ExportColumnResult>();
 
 		if(exportQuery != null){
 
@@ -99,7 +97,7 @@ public class EXEXDaoImpl implements IEXEXDao{
 
 	private List<ExportColumnResult> getListOfExportColumns(ResultSet resultSet) throws SQLException {
 
-		List<ExportColumnResult>columnResults = new ArrayList<>();
+		List<ExportColumnResult>columnResults = new ArrayList<ExportColumnResult>();
 
 		boolean flag = false;
 		while (resultSet.next()) {
