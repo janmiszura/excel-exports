@@ -82,7 +82,7 @@ public class EXEXDaoImpl implements IEXEXDao{
 				columnResults.add(new ExportColumnResult(query.getColumnAlias(),new ArrayList<Object>()));
 			}
 
-			if(exportQuery.getColumnQuerys().isEmpty()){
+			if(!exportQuery.getColumnQuerys().isEmpty()){
 
 				columnResults = getListOfExportColumns(resultSet);
 			}

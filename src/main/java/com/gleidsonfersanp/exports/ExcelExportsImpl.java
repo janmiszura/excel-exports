@@ -194,7 +194,7 @@ public class ExcelExportsImpl implements IExcelExports{
 
 		List<List<Object>> listOfListObjects = new ArrayList<List<Object>>();
 
-		if(columns.size() == 1){
+		/*if(columns.size() == 1){
 
 			List<Object>listObjects= new ArrayList<Object>();
 
@@ -203,16 +203,13 @@ public class ExcelExportsImpl implements IExcelExports{
 			listOfListObjects.add(listObjects);
 			return listOfListObjects;
 		}
-
-
+		 */
 		for (int i = 0; i< columns.size(); i++) {
 
 			List<Object>listObjects= new ArrayList<Object>();
 
-			int indexCol = 0;
-			for (int j = 0; j< columns.size(); j++) {
-				listObjects.add(columns.get(indexCol).getObjects().get(i));
-				indexCol++;
+			for (int j = 0; j < columns.get(i).getObjects().size(); j++) {
+				listObjects.add(columns.get(i).getObjects().get(j));
 			}
 
 			listOfListObjects.add(listObjects);
@@ -226,18 +223,20 @@ public class ExcelExportsImpl implements IExcelExports{
 
 		int indexRow = 1;
 
-		for (List<Object> list : listOfListObjects) {
+		for (int i = 0; i < listOfListObjects.get(0).size();i++) {
+			List<Object> objects = new ArrayList<Object>();
 
-			for (Object object : list) {
-
-				Map<SXSSFRow, List<Object>> map = createRowMap(indexRow, list);
-
-				maps.add(map);
+			for (int j = 0; j < listOfListObjects.size();j++) {
+				objects.add(listOfListObjects.get(j).get(i));
 			}
 
-			indexRow++;
+			Map<SXSSFRow, List<Object>> map = createRowMap(indexRow,objects);
 
+			maps.add(map);
+
+			indexRow++;
 		}
+
 
 		return maps;
 	}
