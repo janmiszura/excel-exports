@@ -97,38 +97,31 @@ public class EXEXDaoImpl implements IEXEXDao{
 
 	private List<ExportColumnResult> getListOfExportColumns(ResultSet resultSet) throws SQLException {
 
-		List<ExportColumnResult>columnResults = new ArrayList<ExportColumnResult>();
+		List<ExportColumnResult> columnResults = extractColumns(resultSet);
 
-		boolean flag = false;
 		while (resultSet.next()) {
-
-			ResultSetMetaData rsmd = resultSet.getMetaData();
-
-			int columnCount = rsmd.getColumnCount();
-
-			if(columnCount == 1 && !flag){
-				String columnName = rsmd.getColumnName(1);
-				ExportColumnResult columnResult = new ExportColumnResult(columnName);
-				columnResults.add(columnResult);
-				flag = true;
-			}
-
-			if(!flag){
-
-				for (int i = 1; i < columnCount; i++) {
-					String columnName = rsmd.getColumnName(i);
-					ExportColumnResult columnResult = new ExportColumnResult(columnName);
-					columnResults.add(columnResult);
-
-				}
-				flag = true;
-			}
 
 			for (ExportColumnResult columnResult : columnResults) {
 				columnResult.getObjects().add(resultSet.getObject(columnResult.getName()));
 			}
+
 		}
 
+		return columnResults;
+	}
+
+	private List<ExportColumnResult> extractColumns(ResultSet resultSet) throws SQLException {
+		ResultSetMetaData rsmd = resultSet.getMetaData();
+
+		int columnCount = rsmd.getColumnCount();
+
+		List<ExportColumnResult> columnResults = new ArrayList<ExportColumnResult>();
+
+		for (int i = 1; i <= columnCount; i++) {
+			String columnName = rsmd.getColumnName(i);
+			ExportColumnResult columnResult = new ExportColumnResult(columnName);
+			columnResults.add(columnResult);
+		}
 		return columnResults;
 	}
 

@@ -3,6 +3,7 @@ package com.gleidsonfersanp.exports;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -53,12 +54,17 @@ public class ExcelExportsImpl implements IExcelExports{
 		rowHeader = sheet.createRow(0);
 	}
 
-	public File exportsForLocalPath(ExportQuery exportQuery, String path, String fileName) throws IOException, SQLException, GeneralException {
+	public File writeFileForLocalPath(ExportQuery exportQuery, String path, String fileName) throws IOException, SQLException, GeneralException {
+
 		String pathExports = getPathFile(path, fileName);
 
 		ExportResultQuery exportResultQuery = getExportResultQuery(exportQuery);
 
-		generateFile(exportResultQuery, pathExports);
+		generateFile(exportResultQuery);
+
+		OutputStream fileOut = new FileOutputStream(pathExports);
+
+		outPut(fileOut);
 
 		File file = new File(pathExports);
 
@@ -66,15 +72,25 @@ public class ExcelExportsImpl implements IExcelExports{
 			return file;
 
 		return null;
-
 	}
 
-	public File exportsForLocalPath(String sql, String path, String fileName) throws IOException, SQLException, GeneralException {
+	private void outPut(OutputStream fileOut) throws IOException {
+		wb.write(fileOut);
+		fileOut.flush();
+		fileOut.close();
+	}
+
+	public File writeFileForLocalPath(String sql, String path, String fileName) throws IOException, SQLException, GeneralException {
+
 		String pathExports = getPathFile(path, fileName);
 
 		ExportResultQuery exportResultQuery = getExportResultQuery(sql);
 
-		generateFile(exportResultQuery, pathExports);
+		generateFile(exportResultQuery);
+
+		OutputStream fileOut = new FileOutputStream(pathExports);
+
+		outPut(fileOut);
 
 		File file = new File(pathExports);
 
@@ -82,11 +98,10 @@ public class ExcelExportsImpl implements IExcelExports{
 			return file;
 
 		return null;
-
 	}
 
 	private String getPathFile(String path, String fileName) {
-		String pathFile = path+"/"+fileName+".xlsx";
+		String pathFile = path+"/"+fileName;
 		return pathFile;
 	}
 
@@ -144,6 +159,10 @@ public class ExcelExportsImpl implements IExcelExports{
 			Double d = (Double) value;
 
 			cell.setCellValue(d);
+		} else if(value instanceof Long) {
+			Long d = (Long) value;
+
+			cell.setCellValue(d);
 		} else if(value instanceof Float) {
 			Float f = (Float) value;
 
@@ -164,7 +183,7 @@ public class ExcelExportsImpl implements IExcelExports{
 		}
 	}
 
-	private void generateFile(ExportResultQuery exportResultQuery, String path) throws IOException {
+	private void generateFile(ExportResultQuery exportResultQuery) throws IOException {
 
 		List<ExportColumnResult> columns = exportResultQuery.getColumnResults();
 
@@ -178,32 +197,15 @@ public class ExcelExportsImpl implements IExcelExports{
 
 		addContentColumns(maps);
 
-		Integer size = listOfListObjects.size();
+		Integer size = columns.size() > 0 ? columns.size(): 1;
 
 		addColumnsFilters(size);
-
-		FileOutputStream fileOut = new FileOutputStream(path);
-
-		wb.write(fileOut);
-		fileOut.flush();
-		fileOut.close();
-
 	}
 
 	private List<List<Object>> createListOfObjects(List<ExportColumnResult> columns) {
 
 		List<List<Object>> listOfListObjects = new ArrayList<List<Object>>();
 
-		/*if(columns.size() == 1){
-
-			List<Object>listObjects= new ArrayList<Object>();
-
-			listObjects.addAll(columns.get(0).getObjects());
-
-			listOfListObjects.add(listObjects);
-			return listOfListObjects;
-		}
-		 */
 		for (int i = 0; i< columns.size(); i++) {
 
 			List<Object>listObjects= new ArrayList<Object>();
@@ -219,7 +221,11 @@ public class ExcelExportsImpl implements IExcelExports{
 	}
 
 	private List<Map<SXSSFRow, List<Object>>> createListMap(List<List<Object>> listOfListObjects) {
+
 		List<Map<SXSSFRow, List<Object>>> maps = new ArrayList<Map<SXSSFRow, List<Object>>>();
+
+		if(listOfListObjects.isEmpty())
+			return maps;
 
 		int indexRow = 1;
 
@@ -236,7 +242,6 @@ public class ExcelExportsImpl implements IExcelExports{
 
 			indexRow++;
 		}
-
 
 		return maps;
 	}
@@ -327,6 +332,28 @@ public class ExcelExportsImpl implements IExcelExports{
 		default:
 			return "Z";
 		}
+
+	}
+
+	public void writeFileForOutputStream(ExportQuery exportQuery, String fileName, OutputStream os)
+			throws IOException, SQLException, GeneralException {
+
+		ExportResultQuery exportResultQuery = getExportResultQuery(exportQuery);
+
+		generateFile(exportResultQuery);
+
+		outPut(os);
+
+	}
+
+	public void writeFileForOutputStream(String sql, String fileName, OutputStream os)
+			throws IOException, SQLException, GeneralException {
+
+		ExportResultQuery exportResultQuery = getExportResultQuery(sql);
+
+		generateFile(exportResultQuery);
+
+		outPut(os);
 
 	}
 

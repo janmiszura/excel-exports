@@ -44,12 +44,12 @@ public class ExcelExportsTest {
 	public void exportExcelFileForExportQueryTest(){
 
 		String path = "/home/afrodite/dev/teste";
-		String fileName = "exportacao-test-1";
+		String fileName = "exportacao-test-1.xlsx";
 
 		File file = null;
 
 		try {
-			file = iExcelExports.exportsForLocalPath(new ExportQueryBuilder()
+			file = iExcelExports.writeFileForLocalPath(new ExportQueryBuilder()
 					.table("cliente")
 					.columnQueries(new ExportColumnQuery("nome","NAME"))
 					.columnQueries(new ExportColumnQuery("idade","AGE"))
@@ -70,12 +70,12 @@ public class ExcelExportsTest {
 	public void exportExcelFileForSqlTest(){
 
 		String path = "/home/afrodite/dev/teste";
-		String fileName = "exportacao-test-2";
+		String fileName = "exportacao-test-2.xlsx";
 
 		File file = null;
 
 		try {
-			file = iExcelExports.exportsForLocalPath("SELECT * FROM CLIENTE", path, fileName);
+			file = iExcelExports.writeFileForLocalPath("SELECT * FROM CLIENTE", path, fileName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -92,12 +92,12 @@ public class ExcelExportsTest {
 	public void exportExcelFileForSqlColumnsTest(){
 
 		String path = "/home/afrodite/dev/teste";
-		String fileName = "exportacao-test-3";
+		String fileName = "exportacao-test-3.xlsx";
 
 		File file = null;
 
 		try {
-			file = iExcelExports.exportsForLocalPath("SELECT nome AS NOME FROM CLIENTE", path, fileName);
+			file = iExcelExports.writeFileForLocalPath("SELECT nome AS NOME FROM CLIENTE", path, fileName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -107,7 +107,6 @@ public class ExcelExportsTest {
 		}
 
 		Assert.assertNotNull(file);
-
 	}
 
 	@After
