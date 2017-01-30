@@ -45,6 +45,9 @@ public class ExcelExportsImpl implements IExcelExports{
 
 	public ExcelExportsImpl(EXEXDataSource dataSource) {
 		this.dataSource = dataSource;
+	}
+
+	private void init(){
 		this.wb = new SXSSFWorkbook (100);
 		wb.setCompressTempFiles(true);
 		cellStyle = wb.createCellStyle();
@@ -54,7 +57,35 @@ public class ExcelExportsImpl implements IExcelExports{
 		rowHeader = sheet.createRow(0);
 	}
 
+	public void writeFileForOutputStream(ExportQuery exportQuery, String fileName, OutputStream os)
+			throws IOException, SQLException, GeneralException {
+
+		init();
+
+		ExportResultQuery exportResultQuery = getExportResultQuery(exportQuery);
+
+		generateFile(exportResultQuery);
+
+		outPut(os);
+
+	}
+
+	public void writeFileForOutputStream(String sql, String fileName, OutputStream os)
+			throws IOException, SQLException, GeneralException {
+
+		init();
+
+		ExportResultQuery exportResultQuery = getExportResultQuery(sql);
+
+		generateFile(exportResultQuery);
+
+		outPut(os);
+
+	}
+
 	public File writeFileForLocalPath(ExportQuery exportQuery, String path, String fileName) throws IOException, SQLException, GeneralException {
+
+		init();
 
 		String pathExports = getPathFile(path, fileName);
 
@@ -81,6 +112,8 @@ public class ExcelExportsImpl implements IExcelExports{
 	}
 
 	public File writeFileForLocalPath(String sql, String path, String fileName) throws IOException, SQLException, GeneralException {
+
+		init();
 
 		String pathExports = getPathFile(path, fileName);
 
@@ -332,28 +365,6 @@ public class ExcelExportsImpl implements IExcelExports{
 		default:
 			return "Z";
 		}
-
-	}
-
-	public void writeFileForOutputStream(ExportQuery exportQuery, String fileName, OutputStream os)
-			throws IOException, SQLException, GeneralException {
-
-		ExportResultQuery exportResultQuery = getExportResultQuery(exportQuery);
-
-		generateFile(exportResultQuery);
-
-		outPut(os);
-
-	}
-
-	public void writeFileForOutputStream(String sql, String fileName, OutputStream os)
-			throws IOException, SQLException, GeneralException {
-
-		ExportResultQuery exportResultQuery = getExportResultQuery(sql);
-
-		generateFile(exportResultQuery);
-
-		outPut(os);
 
 	}
 
