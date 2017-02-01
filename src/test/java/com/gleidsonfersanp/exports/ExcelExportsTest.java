@@ -97,7 +97,7 @@ public class ExcelExportsTest {
 		File file = null;
 
 		try {
-			file = iExcelExports.writeFileForLocalPath("SELECT nome AS NOME FROM CLIENTE", path, fileName);
+			file = iExcelExports.writeFileForLocalPath("SELECT nome AS NOME, telefone FROM CLIENTE", path, fileName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {

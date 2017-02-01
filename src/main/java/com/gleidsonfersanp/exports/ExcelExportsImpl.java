@@ -1,6 +1,7 @@
 package com.gleidsonfersanp.exports;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,8 +27,8 @@ import com.gleidsonfersanp.db.dao.EXEXDaoImpl;
 import com.gleidsonfersanp.db.dao.IEXEXDao;
 import com.gleidsonfersanp.db.query.ExportColumnResult;
 import com.gleidsonfersanp.db.query.ExportQuery;
-import com.gleidsonfersanp.db.query.ExportQueryBuilder;
 import com.gleidsonfersanp.db.query.ExportResultQuery;
+import com.gleidsonfersanp.extra.Util;
 import com.gleidsonfersanp.extra.exception.GeneralException;
 
 public class ExcelExportsImpl implements IExcelExports{
@@ -41,30 +42,45 @@ public class ExcelExportsImpl implements IExcelExports{
 	private CreationHelper createHelper = null;
 	private SXSSFRow rowHeader = null;
 
+	private String path;
+	private String pathExports;
+	private String fileName;
+	private String sqlQuery;
+
+	private ExportQuery exportQuery;
+
 	private EXEXDataSource dataSource;
+
+	private List<ExportColumnResult> columns;
 
 	public ExcelExportsImpl(EXEXDataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 
-	private void init(){
+	private void init(String sql, String path, String fileName) throws GeneralException{
+		this.sqlQuery = sql;
+		this.path = path;
+		this.fileName = fileName;
+		this.pathExports = getPathFile();
+		dao = new EXEXDaoImpl(this.dataSource);
+	}
+
+	private void init(ExportQuery exportQuery, String path, String fileName) throws GeneralException{
+		this.exportQuery = exportQuery;
+		this.path = path;
+		this.fileName = fileName;
+		this.pathExports = getPathFile();
 		this.wb = new SXSSFWorkbook (100);
-		wb.setCompressTempFiles(true);
-		cellStyle = wb.createCellStyle();
-		createHelper = wb.getCreationHelper();
-		cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/mm/yyyy hh:mm"));
-		this.sheet = wb.createSheet("tmp-file");
-		rowHeader = sheet.createRow(0);
+
+		dao = new EXEXDaoImpl(this.dataSource);
 	}
 
 	public void writeFileForOutputStream(ExportQuery exportQuery, String fileName, OutputStream os)
 			throws IOException, SQLException, GeneralException {
 
-		init();
+		init( exportQuery, null, fileName );
 
-		ExportResultQuery exportResultQuery = getExportResultQuery(exportQuery);
-
-		generateFile(exportResultQuery);
+		generateFile();
 
 		outPut(os);
 
@@ -73,11 +89,9 @@ public class ExcelExportsImpl implements IExcelExports{
 	public void writeFileForOutputStream(String sql, String fileName, OutputStream os)
 			throws IOException, SQLException, GeneralException {
 
-		init();
+		init( sql, null, fileName );
 
-		ExportResultQuery exportResultQuery = getExportResultQuery(sql);
-
-		generateFile(exportResultQuery);
+		generateFile();
 
 		outPut(os);
 
@@ -85,42 +99,23 @@ public class ExcelExportsImpl implements IExcelExports{
 
 	public File writeFileForLocalPath(ExportQuery exportQuery, String path, String fileName) throws IOException, SQLException, GeneralException {
 
-		init();
+		init( exportQuery, path, fileName );
 
-		String pathExports = getPathFile(path, fileName);
+		generateFile();
 
-		ExportResultQuery exportResultQuery = getExportResultQuery(exportQuery);
-
-		generateFile(exportResultQuery);
-
-		OutputStream fileOut = new FileOutputStream(pathExports);
-
-		outPut(fileOut);
-
-		File file = new File(pathExports);
-
-		if(file.exists())
-			return file;
-
-		return null;
-	}
-
-	private void outPut(OutputStream fileOut) throws IOException {
-		wb.write(fileOut);
-		fileOut.flush();
-		fileOut.close();
+		return writeFile();
 	}
 
 	public File writeFileForLocalPath(String sql, String path, String fileName) throws IOException, SQLException, GeneralException {
 
-		init();
+		init(sql, path, fileName);
 
-		String pathExports = getPathFile(path, fileName);
+		generateFile();
 
-		ExportResultQuery exportResultQuery = getExportResultQuery(sql);
+		return writeFile();
+	}
 
-		generateFile(exportResultQuery);
-
+	private File writeFile() throws FileNotFoundException, IOException {
 		OutputStream fileOut = new FileOutputStream(pathExports);
 
 		outPut(fileOut);
@@ -133,39 +128,31 @@ public class ExcelExportsImpl implements IExcelExports{
 		return null;
 	}
 
-	private String getPathFile(String path, String fileName) {
+	private String getPathFile() {
 		String pathFile = path+"/"+fileName;
 		return pathFile;
 	}
 
-	private ExportResultQuery getExportResultQuery(ExportQuery exportQuery) throws SQLException, GeneralException{
+	private void createHeader() throws SQLException {
 
-		dao = new EXEXDaoImpl(this.dataSource);
-
-		ExportResultQuery exportResultQuery = dao.executeQuery(new ExportQueryBuilder()
-				.table("cliente")
-				.columnsQueries(exportQuery.getColumnQuerys())
-				.build());
-
-		return exportResultQuery;
-	}
-
-	private ExportResultQuery getExportResultQuery(String sql) throws SQLException, GeneralException{
-
-		dao = new EXEXDaoImpl(this.dataSource);
-
-		ExportResultQuery exportResultQuery = dao.executeQuery(sql);
-
-		return exportResultQuery;
-	}
-
-	private void createHeader(ExportResultQuery exportResultQuery) {
-		List<ExportColumnResult> columns = exportResultQuery.getColumnResults();
 		int indexCol = 0;
+
 		for (ExportColumnResult exportColumnResult : columns) {
 			addColumn(rowHeader, indexCol, exportColumnResult.getName().toUpperCase());
 			indexCol++;
 		}
+
+	}
+
+	private void generateExportColumnResult() throws SQLException {
+		ExportResultQuery exportResultQuery = null;
+
+		if(!Util.isNullOrEmpty(this.sqlQuery))
+			exportResultQuery =  dao.executeQuery(this.sqlQuery);
+		else
+			exportResultQuery =  dao.executeQuery(this.exportQuery);
+
+		this.columns = exportResultQuery.getColumnResults();
 	}
 
 	private void addColumn(SXSSFRow row, int columnNumber, Object value) {
@@ -216,15 +203,18 @@ public class ExcelExportsImpl implements IExcelExports{
 		}
 	}
 
-	private void generateFile(ExportResultQuery exportResultQuery) throws IOException {
 
-		List<ExportColumnResult> columns = exportResultQuery.getColumnResults();
+	private void generateFile() throws IOException, SQLException {
 
-		createHeader(exportResultQuery);
+		generateExportColumnResult();
+
+		configureDocument();
+
+		createHeader();
 
 		List<Map<SXSSFRow, List<Object>>> maps = new ArrayList<Map<SXSSFRow, List<Object>>>();
 
-		List<List<Object>> listOfListObjects = createListOfObjects(columns);
+		List<List<Object>> listOfListObjects = createListOfObjects();
 
 		maps = createListMap(listOfListObjects);
 
@@ -235,7 +225,24 @@ public class ExcelExportsImpl implements IExcelExports{
 		addColumnsFilters(size);
 	}
 
-	private List<List<Object>> createListOfObjects(List<ExportColumnResult> columns) {
+	private void configureDocument() {
+
+		if(columns.isEmpty())
+			this.wb = new SXSSFWorkbook(100);
+		else
+			this.wb = new SXSSFWorkbook(columns.get(0).getObjects().size());
+
+		cellStyle = wb.createCellStyle();
+		createHelper = wb.getCreationHelper();
+		cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/mm/yyyy hh:mm"));
+		this.sheet = wb.createSheet("tmp-file");
+		rowHeader = sheet.createRow(0);
+
+		wb.setCompressTempFiles(true);
+
+	}
+
+	private List<List<Object>> createListOfObjects() throws SQLException {
 
 		List<List<Object>> listOfListObjects = new ArrayList<List<Object>>();
 
@@ -366,6 +373,12 @@ public class ExcelExportsImpl implements IExcelExports{
 			return "Z";
 		}
 
+	}
+
+	private void outPut(OutputStream fileOut) throws IOException {
+		wb.write(fileOut);
+		fileOut.flush();
+		fileOut.close();
 	}
 
 }

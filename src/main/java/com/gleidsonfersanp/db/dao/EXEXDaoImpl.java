@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +12,6 @@ import com.gleidsonfersanp.db.connection.EXEXConnectionServiceImpl;
 import com.gleidsonfersanp.db.connection.EXEXDataSource;
 import com.gleidsonfersanp.db.connection.EXEXDataSourceBuilder;
 import com.gleidsonfersanp.db.connection.IEXEXConnectionService;
-import com.gleidsonfersanp.db.query.ExportColumnQuery;
 import com.gleidsonfersanp.db.query.ExportColumnResult;
 import com.gleidsonfersanp.db.query.ExportQuery;
 import com.gleidsonfersanp.db.query.ExportResultQuery;
@@ -20,6 +20,8 @@ import com.gleidsonfersanp.extra.exception.GeneralException;
 public class EXEXDaoImpl implements IEXEXDao{
 
 	private IEXEXConnectionService connectionService;
+	private List<ExportColumnResult>columnResults;
+	private Connection connection;
 
 	public EXEXDaoImpl(EXEXDataSource dataSource) throws GeneralException {
 
@@ -33,71 +35,78 @@ public class EXEXDaoImpl implements IEXEXDao{
 				);
 	}
 
+	private void openConnection(){
+		connection = connectionService.getConnection();
+	}
+
+	private void closeConnection() throws SQLException{
+		connection.close();
+	}
+
 	public ExportResultQuery executeQuery(ExportQuery exportQuery) throws SQLException {
+		openConnection();
 
-		String sql = generateASqlQuery(exportQuery);
-
-		ResultSet resultSet = null;
+		ExportResultQuery exportResultQuery = null;
 
 		try {
-			resultSet = executeSql(sql);
-		} catch (SQLException e) {
-			e.printStackTrace();
+			exportResultQuery = createExportsResultQuery(exportQuery);
+		} finally {
+			closeConnection();
 		}
 
-		return createExportsResultQuery(resultSet, exportQuery);
+		return exportResultQuery;
 	}
 
 	public ExportResultQuery executeQuery(String sql) throws SQLException {
 
-		ResultSet resultSet = null;
+		openConnection();
+
+		ExportResultQuery exportResultQuery = null;
 
 		try {
-			resultSet = executeSql(sql);
-		} catch (SQLException e) {
-			e.printStackTrace();
+			exportResultQuery = createExportsResultQuery(sql);
+		} finally {
+			closeConnection();
 		}
 
-		return createExportsResultQuery(resultSet, null);
+		return exportResultQuery;
 	}
 
-	public ResultSet executeSql(String sql) throws SQLException{
+	private ResultSet executeSql(String sql) throws SQLException{
 
-		Connection connection = connectionService.getConnection();
+		Statement statement = connection.createStatement();
 
-		ResultSet resultSet = connection.createStatement().executeQuery(sql);
-
-		connection.close();
-
-		return resultSet;
+		return statement.executeQuery(sql);
 	}
 
-	private ExportResultQuery createExportsResultQuery(ResultSet resultSet,ExportQuery exportQuery) throws SQLException {
+	private ExportResultQuery createExportsResultQuery(ExportQuery exportQuery) throws SQLException {
 
-		List<ExportColumnResult>columnResults = new ArrayList<ExportColumnResult>();
+		String sql = generateASqlQuery(exportQuery);
 
-		if(exportQuery != null){
+		return createExportsResultQuery(sql);
+	}
 
-			for (ExportColumnQuery query : exportQuery.getColumnQuerys()) {
-				columnResults.add(new ExportColumnResult(query.getColumnAlias(),new ArrayList<Object>()));
-			}
+	private ExportResultQuery createExportsResultQuery(String sql) throws SQLException {
 
-			if(!exportQuery.getColumnQuerys().isEmpty()){
-
-				columnResults = getListOfExportColumns(resultSet);
-			}
-
-			return new ExportResultQuery(columnResults);
-		}
-
-		columnResults = getListOfExportColumns(resultSet);
+		extractColumns(sql);
 
 		return new ExportResultQuery(columnResults);
 	}
 
-	private List<ExportColumnResult> getListOfExportColumns(ResultSet resultSet) throws SQLException {
+	private void extractColumns(String sql) throws SQLException {
 
-		List<ExportColumnResult> columnResults = extractColumns(resultSet);
+		ResultSet resultSet = executeSql(sql);
+		ResultSetMetaData rsmd = resultSet.getMetaData();
+
+		int columnCount = rsmd.getColumnCount();
+
+		columnResults = new ArrayList<ExportColumnResult>();
+
+		for (int i = 1; i <= columnCount; i++) {
+			String columnName = rsmd.getColumnLabel(i);
+			ExportColumnResult columnResult = new ExportColumnResult(columnName);
+			columnResults.add(columnResult);
+		}
 
 		while (resultSet.next()) {
 
@@ -107,25 +116,9 @@ public class EXEXDaoImpl implements IEXEXDao{
 
 		}
 
-		return columnResults;
 	}
 
-	private List<ExportColumnResult> extractColumns(ResultSet resultSet) throws SQLException {
-		ResultSetMetaData rsmd = resultSet.getMetaData();
-
-		int columnCount = rsmd.getColumnCount();
-
-		List<ExportColumnResult> columnResults = new ArrayList<ExportColumnResult>();
-
-		for (int i = 1; i <= columnCount; i++) {
-			String columnName = rsmd.getColumnName(i);
-			ExportColumnResult columnResult = new ExportColumnResult(columnName);
-			columnResults.add(columnResult);
-		}
-		return columnResults;
-	}
-
-	public String generateASqlQuery(ExportQuery exportQuery) {
+	private String generateASqlQuery(ExportQuery exportQuery) {
 
 		StringBuilder sb = new StringBuilder();
 
@@ -158,6 +151,5 @@ public class EXEXDaoImpl implements IEXEXDao{
 
 		return sb.toString();
 	}
-
 
 }

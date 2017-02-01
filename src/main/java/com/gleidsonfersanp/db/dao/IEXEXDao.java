@@ -1,6 +1,5 @@
 package com.gleidsonfersanp.db.dao;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import com.gleidsonfersanp.db.query.ExportQuery;
@@ -10,7 +9,5 @@ public interface IEXEXDao {
 
 	ExportResultQuery executeQuery(ExportQuery exportQuery) throws SQLException;
 	ExportResultQuery executeQuery(String sql) throws SQLException;
-	ResultSet executeSql(String sql) throws SQLException;
-	String generateASqlQuery(ExportQuery exportQuery);
 
 }
